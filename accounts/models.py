@@ -29,9 +29,8 @@ class CustomUserManager(BaseUserManager):
     
     
     def generate_unique_username(self, first_name, last_name):
-        base_username = f"{first_name.lower()}.{last_name.lower()}" if last_name else first_name.lower()
-        username = base_username
-        counter = 1
+        base_username = f"{first_name.lower().replace(' ', '')}.{last_name.lower().replace(' ', '')}" if last_name else first_name.lower()
+        username = base_username or "user"
         while CustomUser.objects.filter(username=username).exists():
             username = f"{base_username}{random.randint(1000, 9999)}"
         return username
