@@ -7,7 +7,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        # Exclude the username from the fields since it's auto-generated
         fields = ['first_name', 'last_name', 'email', 'username', 'phone_number', 'password']
     
     def create(self, validated_data):
