@@ -61,6 +61,6 @@ def task_list_view(request):
     return render( request,'task_list.html')
 
 
-def create_task(request):
+def create_task_view(request):
 
     return render(request, 'create_task.html')
