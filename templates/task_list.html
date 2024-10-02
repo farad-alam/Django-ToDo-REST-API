@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+
+
+{% block content-body %}
+
+<div class="container my-5">
+    <div class="table-responsive">
+        <table class="table table-primary round">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Due Date</th>
+                </tr>
+            </thead>
+            <tbody id="task-table-body">
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+<script>
+
+    fetch('/task/task-list/')
+        .then(response => response.json())
+        .then(
+            data => {
+                console.log(data)
+
+                const tableBody = document.getElementById('task-table-body');
+                tableBody.innerHTML = ''; // crear existing row
+
+                data.forEach(task => {
+                    const newRow = `
+                            <tr>
+                                <td>${task.title}</td>
+                                <td>${task.description}</td>
+                                <td>${new Date(task.due_date).toLocaleDateString()}</td>
+                            </tr>
+                        `;
+                    console.log(`inert task id ${task.id}`)
+                    tableBody.insertAdjacentHTML('beforeend', newRow)
+
+                })
+            }
+        )
+        .catch(error => console.error('Error when Fetching data', error));
+
+</script>
+
+  
+{% endblock content-body %}
+
+

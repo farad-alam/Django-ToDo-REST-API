@@ -6,6 +6,10 @@ from .serializers import TaskSerializer
 from .models import Task
 # Create your views here.
 
+
+
+
+#   API VIEW
 @api_view(['GET'])
 def task_list(request):
     task = Task.objects.all()
@@ -48,3 +52,15 @@ def delete_task(request,pk):
         return Response({'error':'task not found'}, status=status.HTTP_404_NOT_FOUND)
     task.delete()
     return Response({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+# TEMPLATE RENDER VIEW ----------->>>>>
+
+def task_list_view(request):
+
+    return render( request,'task_list.html')
+
+
+def create_task(request):
+
+    return render(request, 'create_task.html')
