@@ -65,3 +65,7 @@ def task_list_view(request):
 def create_task_view(request):
 
     return render(request, 'create_task.html')
+
+def update_task_view(request, pk):
+    
+    return render(request, 'edit_task.html', {'task_id': pk})

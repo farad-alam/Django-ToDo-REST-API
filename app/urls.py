@@ -6,6 +6,7 @@ from .views import (
     delete_task, 
     task_list_view,
     create_task_view,
+    update_task_view
     )
 
 urlpatterns = [
@@ -18,5 +19,6 @@ urlpatterns = [
 
     # template url
     path('task-list-view/', task_list_view, name='task-list-view'),
-    path('create-task-view/', create_task_view, name='create-task-view')
+    path('create-task-view/', create_task_view, name='create-task-view'),
+    path('update-task-view/<int:pk>/', update_task_view, name='update-task-view'),
 ]
