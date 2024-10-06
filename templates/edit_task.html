@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content-body %}
+<div class="container my-5">
+    <h2>Edit Task</h2>
+    <form id="edit-task-form">
+        <div class="mb-3">
+            <label for="title" class="form-label">Task Title</label>
+            <input type="text" class="form-control" id="title" name="title" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="due_date" class="form-label">Due Date</label>
+            <input type="datetime-local" class="form-control" id="due_date" required name="due_date" />
+        </div>
+
+        <div class="mb-3">
+            <label for="priority" class="form-label">Priority</label>
+            <select class="form-select" id="priority" name="priority" required>
+                <option value="H">High</option>
+                <option value="M" selected>Medium</option>
+                <option value="L">Low</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status" required>
+                <option value="P" selected>Pending</option>
+                <option value="I">In Progress</option>
+                <option value="C">Completed</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <input type="text" class="form-control" id="category" name="category" />
+        </div>
+
+        <div class="mb-3">
+            <label for="assigned_user" class="form-label">Assigned User</label>
+            <input type="text" class="form-control" id="assigned_user" required name="assigned_user" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Update Task</button>
+    </form>
+</div>
+
+<script>
+    const taskId = "{{ task_id }}";
+
+    // Fetch task details and prefill the form
+    fetch(`/task/update-task/${taskId}/`)
+        .then(response => response.json())
+        .then(task => {
+                    document.getElementById('title').value = task.title
+                    document.getElementById('description').value = task.description
+                    document.getElementById('due_date').value = new Date(task.due_date).toISOString().slice(0, 16);
+                    document.getElementById('priority').value = task.priority  
+                    document.getElementById('status').value = task.status
+                    document.getElementById('category').value = task.category
+                    document.getElementById('assigned_user').value = task.assigned_user
+        })
+        .catch(error => console.error('Error fetching task:', error));
+
+    // Handle form submission for updating the task
+    const form = document.getElementById('edit-task-form');
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const due_date = document.getElementById('due_date').value;
+            const priority = document.getElementById('priority').value;
+            const status = document.getElementById('status').value;
+            const category = document.getElementById('category').value;
+            const assigned_user = document.getElementById('assigned_user').value;
+
+        const updatedTask = {
+            'title': title,
+            'description': description,
+            'due_date': due_date,
+            'priority': priority,
+            'status': status,
+            'category': category,
+            'assigned_user': assigned_user
+        };
+
+        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+       fetch(`/task/update-task/${taskId}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(updatedTask)
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Something went wrong');
+            })
+            .then(data => {
+                alert('Task updated successfully!');
+                window.location.href = '{% url "task-list-view" %}';
+            })
+            .catch(error => {
+                console.error('Error updating task:', error);
+                alert('Failed to update task. Please try again.');
+            });
+
+    });
+</script>
+{% endblock %}
