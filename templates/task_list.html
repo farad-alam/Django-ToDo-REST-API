@@ -12,12 +12,16 @@
                     <th scope="col">Title</th>
                     <th scope="col">Description</th>
                     <th scope="col">Due Date</th>
+                    <th scope="col" >Action</th>
                 </tr>
             </thead>
             <tbody id="task-table-body">
 
             </tbody>
         </table>
+    </div>
+    <div>
+        <a class="btn btn-success" href="{% url 'create-task-view' %}">Add New Task</a>
     </div>
 
 </div>
@@ -40,15 +44,69 @@
                                 <td>${task.title}</td>
                                 <td>${task.description}</td>
                                 <td>${new Date(task.due_date).toLocaleDateString()}</td>
+                                <td><p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p> </td>
                             </tr>
                         `;
                     console.log(`inert task id ${task.id}`)
                     tableBody.insertAdjacentHTML('beforeend', newRow)
 
-                })
+                } )
+
+                // Add delete event listeners to each delete button
+                document.querySelectorAll('.delete-task-btn').forEach(button => {
+                    button.addEventListener('click', handleDeleteTask);
+                    console.log('Add event listener to delete button')
+                });
             }
         )
         .catch(error => console.error('Error when Fetching data', error));
+
+
+    function handleDeleteTask(event) {
+        const taskId = event.target.getAttribute('data-task-id');
+        console.log(taskId)
+            if (!confirm('Are you sure you want to delete this task?')) {
+            return;
+        }
+
+        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        fetch(`/task/delete/${taskId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete the task');
+                }
+                console.log('Task deleted');
+                event.target.closest('tr').remove();  // Remove the task row from the table
+            })
+            .catch(error => console.error('Error deleting task:', error));
+            
+
+        // fetch(`/task/delete/${taskId}/`, {
+        //     method: 'DELETE',
+        //     headers: {
+        //         'X-CSRFToken': csrftoken
+        //     }
+        // })
+        //     .then(response => {
+        //         if (!response.ok) {
+        //             throw new Error('Failed to delete the task');
+        //         }
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         console.log('Task deleted:', data);
+        //         event.target.closest('tr').remove();  // Remove the task row from the table
+        //     })
+        //     .catch(error => console.error('Error deleting task:', error));
+
+
+    }
 
 </script>
 

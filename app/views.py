@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -44,14 +45,14 @@ def update_task(request, pk):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['DELETE', 'GET'])
+@api_view(['DELETE'])
 def delete_task(request,pk):
     try:
         task = Task.objects.get(pk=pk)
     except Task.DoesNotExist:
-        return Response({'error':'task not found'}, status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse({'error':'task not found'}, status=status.HTTP_404_NOT_FOUND)
     task.delete()
-    return Response({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    return JsonResponse({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 
 # TEMPLATE RENDER VIEW ----------->>>>>

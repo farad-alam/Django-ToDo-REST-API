@@ -18,5 +18,5 @@ urlpatterns = [
 
     # template url
     path('task-list-view/', task_list_view, name='task-list-view'),
-    path('create-task-view/', create_task_view, name='create-task')
+    path('create-task-view/', create_task_view, name='create-task-view')
 ]

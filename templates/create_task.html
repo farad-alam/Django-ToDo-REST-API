@@ -3,6 +3,8 @@
 {% block content-body %}
 
         <div class="container mt-5">
+            <div id="success-message">
+            </div>
             <div class="row">
                 <!-- Left column for the form -->
                 <div class="col-md-6">
@@ -104,6 +106,10 @@
             return response.json();
         })
         .then(data =>{
+            const successDiv = document.getElementById('success-message');
+            const msg = `<p class="bg-success py-2 px-3 text-center text-white">New Task Added Successfylly!</p>`
+            successDiv.insertAdjacentHTML('beforeend', msg)
+
             console.log('Successfully created new Task', data);
         })
         .catch(error =>{
