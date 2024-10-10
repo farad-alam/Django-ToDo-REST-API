@@ -12,6 +12,12 @@ urlpatterns = [
 
     path('request-password-reset/', views.request_password_reset, name='request-password-reset'),
     path('reset-password/', views.reset_password, name='reset-password'),
-    path('token-verify/', views.verify_password_restet_token, name='token-verify')
+    path('token-verify/', views.verify_password_restet_token, name='token-verify'),
+
+
+    #View URL
+    path('request-password-reset-view/', views.request_password_reset_view, name='request-password-reset-view'),
+    path('reset-account-password/', views.reset_password_view, name='reset-password-view'),
+    
 ]
 
