@@ -58,7 +58,7 @@ def request_password_reset(request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
 
     # Create password reset link
-    reset_link = f"{request.build_absolute_uri('/accounts/reset-password/')}?uid={uid}&token={token}"
+    reset_link = f"{request.build_absolute_uri('/accounts/reset-account-password/')}?uid={uid}&token={token}"
 
     # Send email
     subject = "Password Reset Request"
@@ -144,3 +144,10 @@ def reset_password(request):
 
 def registration_view(request):
     return HttpResponse('sound from accounts!!!')
+
+
+def request_password_reset_view(request):
+    return render(request, 'request_password_reset.html')
+
+def reset_password_view(request):
+    return render(request, 'reset_password.html')
