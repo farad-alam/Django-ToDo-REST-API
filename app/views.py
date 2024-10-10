@@ -55,6 +55,17 @@ def delete_task(request,pk):
     return JsonResponse({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 
+
+
+
+
+
+
+
+
+
+
+
 # TEMPLATE RENDER VIEW ----------->>>>>
 
 def task_list_view(request):
