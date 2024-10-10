@@ -104,7 +104,7 @@ def reset_password(request):
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = CustomUser.objects.get(pk=int(uid))
     except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-        return Response({'error': 'Invalid token or user'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid user'}, status=status.HTTP_400_BAD_REQUEST)
 
     # Check the token
     if not token_generator.check_token(user, token):
@@ -151,3 +151,4 @@ def request_password_reset_view(request):
 
 def reset_password_view(request):
     return render(request, 'reset_password.html')
+
