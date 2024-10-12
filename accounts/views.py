@@ -185,3 +185,6 @@ def request_password_reset_view(request):
 def reset_password_view(request):
     return render(request, 'reset_password.html')
 
+def login_view(request):
+    return render(request, 'login.html')
+
