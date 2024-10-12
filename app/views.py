@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import TaskSerializer
@@ -12,6 +13,7 @@ from .models import Task
 
 #   API VIEW
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def task_list(request):
     task = Task.objects.all()
     serializer = TaskSerializer(task, many=True)
@@ -20,6 +22,7 @@ def task_list(request):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_task(request):
     serializer = TaskSerializer(data=request.data)
     if serializer.is_valid():
@@ -28,6 +31,7 @@ def create_task(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT', 'PATCH', 'GET'])
+@permission_classes([IsAuthenticated])
 def update_task(request, pk):
     try:
         task = Task.objects.get(pk=pk)
@@ -46,6 +50,7 @@ def update_task(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_task(request,pk):
     try:
         task = Task.objects.get(pk=pk)

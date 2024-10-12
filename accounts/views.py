@@ -1,6 +1,8 @@
 from django.shortcuts import render, HttpResponse
 from rest_framework import generics
 from .models import CustomUser
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny, IsAdminUser
 from .serializers import CustomUserSerializer, UserListSerializer
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
@@ -25,6 +27,36 @@ from rest_framework import status
 class UserCreateListView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = [IsAdminUser]
+
+
+class UserRegistrationView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        # Save the user using the serializer
+        user = serializer.save()
+
+        # Generate JWT tokens for the newly registered user
+        refresh = RefreshToken.for_user(user)
+
+        # Prepare response data
+        self.response_data = {
+            'user': CustomUserSerializer(user).data,  # User data
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+
+        # Return response with JWT tokens
+        return Response(self.response_data, status=status.HTTP_201_CREATED, headers=headers)
 
 # class UserDetailedUpdateView(generics.RetrieveUpdateAPIView):
 #     queryset = CustomUser.objects.all()
@@ -36,6 +68,7 @@ class UserDetailedUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     lookup_field = 'id'
+    permission_classes = [IsAdminUser]
 
 
 
