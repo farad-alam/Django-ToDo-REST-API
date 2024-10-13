@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <title>Title</title>
+        <title>Django Task Management</title>
         <!-- Required meta tags -->
         <meta charset="utf-8" />
         <meta
@@ -41,38 +41,37 @@
                     <div class="collapse navbar-collapse" id="collapsibleNavId">
                         <ul class="navbar-nav me-auto mt-2 mt-lg-0">
                             <li class="nav-item">
-                                <a class="nav-link active" href="#" aria-current="page"
+                                <a class="nav-link active" href="{% url 'home' %}" aria-current="page"
                                     >Home
                                     <span class="visually-hidden">(current)</span></a
                                 >
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Link</a>
+                                <a class="nav-link" href="{% url 'create-task-view' %}">New Task</a>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a
-                                    class="nav-link dropdown-toggle"
-                                    href="#"
-                                    id="dropdownId"
-                                    data-bs-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                    >Dropdown</a
-                                >
-                                <div
-                                    class="dropdown-menu"
-                                    aria-labelledby="dropdownId"
-                                >
-                                    <a class="dropdown-item" href="#"
-                                        >Action 1</a
-                                    >
-                                    <a class="dropdown-item" href="#"
-                                        >Action 2</a
-                                    >
-                                </div>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'task-list-view' %}">Task List</a>
                             </li>
+                            
                         </ul>
-                        <form class="d-flex my-2 my-lg-0">
+
+                        <ul class="navbar-nav d-flex my-2 my-lg-0">
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'login-view' %}">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'registration' %}">Register</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <button id="logout-btn" class="btn btn-danger">Logout</button>
+                            </li>
+
+                        
+                        </ul>
+
+                        <!-- <form class="d-flex my-2 my-lg-0">
                             <input
                                 class="form-control me-sm-2"
                                 type="text"
@@ -84,7 +83,7 @@
                             >
                                 Search
                             </button>
-                        </form>
+                        </form> -->
                     </div>
                 </div>
              </nav>
@@ -112,7 +111,59 @@
             crossorigin="anonymous"
         ></script>
 
-        
+        <script>
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+                function handleLogout() {
+
+
+                    // Optionally, send a request to the backend to blacklist or invalidate the refresh token
+                    fetch('/accounts/logout/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('access')
+                        },
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('Logged out successfully.');
+                            } else {
+                                console.error('Failed to log out.');
+                            }
+                        })
+                        .catch(error => console.error('Error during logout:', error));
+
+                    // Remove tokens from localStorage
+                    localStorage.removeItem('access');
+                    localStorage.removeItem('refresh');
+                    // Redirect the user to the login page
+                    window.location.href = '/accounts/login-view/';
+                }
+
+
+                 window.addEventListener('load', () => {
+                        const accessToken = localStorage.getItem('access');
+                        const currentPath = window.location.pathname;
+
+                        // Define paths that don't require authentication
+                        const nonAuthPaths = [
+                            '/',
+                            '/accounts/login-view/',
+                            '/accounts/request-password-reset-view/',   // Add your password reset view path here
+                            '/accounts/reset-account-password/',  // Add your password reset confirmation path here (if any)
+                            '/accounts/registration/'  // If there's a registration page, you can exclude that too
+                        ];
+
+                        // Only check for accessToken on pages that require authentication (exclude login, password reset, etc.)
+                        if (!accessToken && !nonAuthPaths.includes(currentPath)) {
+                            // If no token and not on non-auth page, redirect to login page
+                            window.location.href = '/accounts/login-view/';
+                        }
+                    });
+
+
+        </script>
 
     </body>
 </html>

@@ -28,42 +28,62 @@
 
 
 <script>
+    const accessToken = localStorage.getItem('access');
+    const refreshToken = localStorage.getItem('refresh');
+    console.log(accessToken)
 
-    fetch('/task/task-list/')
-        .then(response => response.json())
-        .then(
-            data => {
-                console.log(data)
+    function fetchTaskList(){
+            console.log("Fetching tasks with access token:", accessToken);
+    
+        fetch('/task/task-list/',{
+                method:'GET',
+                headers:{
+                    'Content-Type':'application/json',
+                    'Authorization': 'Bearer ' + accessToken,
+                },
+        })
+            .then(response => {
+                // Check if token is invalid and needs refreshing
+                if (response.status === 401) {
+                    // throw new Error('TokenExpired');
+                    console.error('Access token expaired')
+                    refreshAccessToken();
+                }
+                return response.json();
+            })
+            .then(
+                data => {
+                    console.log(data)
 
-                const tableBody = document.getElementById('task-table-body');
-                tableBody.innerHTML = ''; // crear existing row
+                    const tableBody = document.getElementById('task-table-body');
+                    tableBody.innerHTML = ''; // crear existing row
 
-                data.forEach(task => {
-                    const newRow = `
-                            <tr>
-                                <td>${task.title}</td>
-                                <td>${task.description}</td>
-                                <td>${new Date(task.due_date).toLocaleDateString()}</td>
-                                <td>
-                                    <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
-                                    <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
-                                </td>
-                            </tr>
-                        `;
-                    console.log(`inert task id ${task.id}`)
-                    tableBody.insertAdjacentHTML('beforeend', newRow)
+                    data.forEach(task => {
+                        const newRow = `
+                                <tr>
+                                    <td>${task.title}</td>
+                                    <td>${task.description}</td>
+                                    <td>${new Date(task.due_date).toLocaleDateString()}</td>
+                                    <td>
+                                        <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
+                                        <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
+                                    </td>
+                                </tr>
+                            `;
+                        console.log(`inert task id ${task.id}`)
+                        tableBody.insertAdjacentHTML('beforeend', newRow)
 
-                } )
+                    } )
 
-                // Add delete event listeners to each delete button
-                document.querySelectorAll('.delete-task-btn').forEach(button => {
-                    button.addEventListener('click', handleDeleteTask);
-                    console.log('Add event listener to delete button')
-                });
-            }
-        )
-        .catch(error => console.error('Error when Fetching data', error));
-
+                    // Add delete event listeners to each delete button
+                    document.querySelectorAll('.delete-task-btn').forEach(button => {
+                        button.addEventListener('click', handleDeleteTask);
+                        console.log('Add event listener to delete button')
+                    });
+                }
+            )
+            .catch(error => console.error('Error when Fetching data', error));
+    }
 
     function handleDeleteTask(event) {
         const taskId = event.target.getAttribute('data-task-id');
@@ -77,39 +97,52 @@
         fetch(`/task/delete/${taskId}/`, {
             method: 'DELETE',
             headers: {
-                'X-CSRFToken': csrftoken
+                'X-CSRFToken': csrftoken,
+                'Authorization': 'Bearer ' + accessToken,
             }
         })
             .then(response => {
-                if (!response.ok) {
+                if (response.status === 401) {
+                    console.error('Access token expaired')
+                    refreshAccessToken();
+                    
+                } else if(!response.ok) {
                     throw new Error('Failed to delete the task');
                 }
                 console.log('Task deleted');
                 event.target.closest('tr').remove();  // Remove the task row from the table
             })
             .catch(error => console.error('Error deleting task:', error));
-            
-
-        // fetch(`/task/delete/${taskId}/`, {
-        //     method: 'DELETE',
-        //     headers: {
-        //         'X-CSRFToken': csrftoken
-        //     }
-        // })
-        //     .then(response => {
-        //         if (!response.ok) {
-        //             throw new Error('Failed to delete the task');
-        //         }
-        //         return response.json();
-        //     })
-        //     .then(data => {
-        //         console.log('Task deleted:', data);
-        //         event.target.closest('tr').remove();  // Remove the task row from the table
-        //     })
-        //     .catch(error => console.error('Error deleting task:', error));
-
 
     }
+
+    function refreshAccessToken() {
+            fetch('/accounts/token/refresh/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refresh: refreshToken })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.access) {
+                        // Store new access token and retry fetching task list
+                        localStorage.setItem('access', data.access);
+                        console.log('Access token refreshed. Retrying request...');
+                        window.location.reload();
+                    } else {
+                        console.error('Failed to refresh access token.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing access token:', error);
+                    // Handle token refresh failure (e.g., redirect to login)
+                });
+        }
+
+    // Fetch task list when page loads
+    fetchTaskList()
 
 </script>
 

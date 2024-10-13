@@ -73,6 +73,10 @@ def delete_task(request,pk):
 
 # TEMPLATE RENDER VIEW ----------->>>>>
 
+def home(request):
+
+    return render( request,'home.html')
+
 def task_list_view(request):
 
     return render( request,'task_list.html')

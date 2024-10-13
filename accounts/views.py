@@ -11,9 +11,12 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.hashers import make_password
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 # class UserCreateView(generics.CreateAPIView):
 #     queryset = CustomUser.objects.all()
@@ -71,7 +74,15 @@ class UserDetailedUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
 
 
-
+class LogoutView(APIView):
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Invalidate the token
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 # Password reset token generator
@@ -79,6 +90,7 @@ token_generator = PasswordResetTokenGenerator()
 
 # Step 1: Request password reset
 @api_view(['POST'])
+@permission_classes([AllowAny]) 
 def request_password_reset(request):
     email = request.data.get('email')
     try:
@@ -119,6 +131,7 @@ def token_verify(uidb64, token):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny]) 
 def verify_password_restet_token(request):
     uidb64 = request.data.get('uid')
     token = request.data.get('token')
@@ -128,6 +141,7 @@ def verify_password_restet_token(request):
 
 # Step 2: Reset password
 @api_view(['POST'])
+@permission_classes([AllowAny]) 
 def reset_password(request):
     uidb64 = request.data.get('uid')
     token = request.data.get('token')
