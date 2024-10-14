@@ -9,10 +9,21 @@
         <table class="table table-primary round">
             <thead>
                 <tr>
-                    <th scope="col">Title</th>
+                    <th scope="col"><a href="#" class="sort-header" data-sort-field="title">Title</a></th>
                     <th scope="col">Description</th>
+                    <th scope="col"><a href="#" class="sort-header" data-sort-field="status">Status</a></th>
+                    <th scope="col"><a href="#" class="sort-header" data-sort-field="priority">Priority</a></th>
+                    <th scope="col">Category</th>
+                    <th scope="col"><a href="#" class="sort-header" data-sort-field="due_date">Due Date</a></th>
+                    <th scope="col">Action</th>
+
+                    <!-- <th scope="col">Title</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Category</th>
                     <th scope="col">Due Date</th>
-                    <th scope="col" >Action</th>
+                    <th scope="col" >Action</th> -->
                 </tr>
             </thead>
             <tbody id="task-table-body">
@@ -32,58 +43,136 @@
     const refreshToken = localStorage.getItem('refresh');
     console.log(accessToken)
 
-    function fetchTaskList(){
-            console.log("Fetching tasks with access token:", accessToken);
-    
-        fetch('/task/task-list/',{
-                method:'GET',
-                headers:{
-                    'Content-Type':'application/json',
-                    'Authorization': 'Bearer ' + accessToken,
-                },
+    let currentSortField = '';  // Track the current sort field
+    let currentSortOrder = '';  // Track the current sort order
+
+            
+    function fetchTaskList(sortField = '', sortOrder = '') {
+        let url = '/task/task-list/';
+
+        // Add sorting query parameters if sorting is applied
+        if (sortField && sortOrder) {
+            url += `?ordering=${sortOrder === 'asc' ? '' : '-'}${sortField}`;
+            }
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + accessToken,
+            },
         })
             .then(response => {
-                // Check if token is invalid and needs refreshing
                 if (response.status === 401) {
-                    // throw new Error('TokenExpired');
-                    console.error('Access token expaired')
+                    console.error('Access token expired');
                     refreshAccessToken();
                 }
                 return response.json();
             })
-            .then(
-                data => {
-                    console.log(data)
+            .then(data => {
+                const tableBody = document.getElementById('task-table-body');
+                tableBody.innerHTML = '';  // Clear existing rows
 
-                    const tableBody = document.getElementById('task-table-body');
-                    tableBody.innerHTML = ''; // crear existing row
+                data.forEach(task => {
+                    const newRow = `
+            <tr>
+                <td>${task.title}</td>
+                <td>${task.description}</td>
+                <td>${task.status}</td>
+                <td>${task.priority}</td>
+                <td>${task.category}</td>
+                <td>${new Date(task.due_date).toLocaleDateString()}</td>
+                <td>
+                    <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
+                    <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
+                </td>
+            </tr>
+        `;
+                    tableBody.insertAdjacentHTML('beforeend', newRow);
+                });
 
-                    data.forEach(task => {
-                        const newRow = `
-                                <tr>
-                                    <td>${task.title}</td>
-                                    <td>${task.description}</td>
-                                    <td>${new Date(task.due_date).toLocaleDateString()}</td>
-                                    <td>
-                                        <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
-                                        <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
-                                    </td>
-                                </tr>
-                            `;
-                        console.log(`inert task id ${task.id}`)
-                        tableBody.insertAdjacentHTML('beforeend', newRow)
-
-                    } )
-
-                    // Add delete event listeners to each delete button
-                    document.querySelectorAll('.delete-task-btn').forEach(button => {
-                        button.addEventListener('click', handleDeleteTask);
-                        console.log('Add event listener to delete button')
-                    });
-                }
-            )
-            .catch(error => console.error('Error when Fetching data', error));
+                // Add delete event listeners to each delete button
+                document.querySelectorAll('.delete-task-btn').forEach(button => {
+                    button.addEventListener('click', handleDeleteTask);
+                });
+            })
+            .catch(error => console.error('Error fetching tasks:', error));
     }
+
+    // Handle sorting click event
+    document.querySelectorAll('.sort-header').forEach(header => {
+        header.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const sortField = this.getAttribute('data-sort-field');
+
+            // Toggle between ascending and descending order
+            if (currentSortField === sortField) {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = sortField;
+                currentSortOrder = 'asc';
+            }
+
+            fetchTaskList(currentSortField, currentSortOrder);
+        });
+    });
+
+    // function fetchTaskList(){
+    //         console.log("Fetching tasks with access token:", accessToken);
+    
+    //     fetch('/task/task-list/',{
+    //             method:'GET',
+    //             headers:{
+    //                 'Content-Type':'application/json',
+    //                 'Authorization': 'Bearer ' + accessToken,
+    //             },
+    //     })
+    //         .then(response => {
+    //             // Check if token is invalid and needs refreshing
+    //             if (response.status === 401) {
+    //                 // throw new Error('TokenExpired');
+    //                 console.error('Access token expaired')
+    //                 refreshAccessToken();
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(
+    //             data => {
+    //                 console.log(data)
+
+    //                 const tableBody = document.getElementById('task-table-body');
+    //                 tableBody.innerHTML = ''; // crear existing row
+
+    //                 data.forEach(task => {
+    //                     const newRow = `
+    //                             <tr>
+    //                                 <td>${task.title}</td>
+    //                                 <td>${task.description}</td>
+    //                                 <td>${task.status}</td>
+    //                                 <td>${task.priority}</td>
+    //                                 <td>${task.category}</td>
+    //                                 <td>${new Date(task.due_date).toLocaleDateString()}</td>
+    //                                 <td>
+    //                                     <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
+    //                                     <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
+    //                                 </td>
+    //                             </tr>
+    //                         `;
+    //                     console.log(`inert task id ${task.id}`)
+    //                     tableBody.insertAdjacentHTML('beforeend', newRow)
+
+    //                 } )
+
+    //                 // Add delete event listeners to each delete button
+    //                 document.querySelectorAll('.delete-task-btn').forEach(button => {
+    //                     button.addEventListener('click', handleDeleteTask);
+    //                     console.log('Add event listener to delete button')
+    //                 });
+    //             }
+    //         )
+    //         .catch(error => console.error('Error when Fetching data', error));
+    // }
 
     function handleDeleteTask(event) {
         const taskId = event.target.getAttribute('data-task-id');

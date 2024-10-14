@@ -6,6 +6,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import TaskSerializer
 from .models import Task
+from rest_framework import generics
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+from .filters import TaskFilter
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 # Create your views here.
 
 
@@ -20,6 +25,17 @@ def task_list(request):
 
     return Response(serializer.data)
 
+class TaskListView(generics.ListCreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    
+    # Define the fields that can be filtered, searched, and sorted
+    filterset_class = TaskFilter  # Use the custom filterset for filtering
+    search_fields = ['title', 'description']  # Allow searching by title and description
+    ordering_fields = ['title', 'priority','created_date', 'due_date', 'status']  # Allow sorting by created date, due date, and status
+    ordering = ['created_date']  # Default ordering
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
