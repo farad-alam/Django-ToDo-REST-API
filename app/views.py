@@ -11,14 +11,21 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .filters import TaskFilter
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
-# Create your views here.
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+from rest_framework.decorators import throttle_classes
 
+class TaskListPagination(PageNumberPagination):
+    page_size = 5  # Number of tasks per page
+    page_size_query_param = 'page_size'  # Allow clients to change the page size with a query parameter
+    max_page_size = 100  # Max limit for page size
 
 
 
 #   API VIEW
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([UserRateThrottle])
 def task_list(request):
     task = Task.objects.all()
     serializer = TaskSerializer(task, many=True)
@@ -30,6 +37,9 @@ class TaskListView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    pagination_class = TaskListPagination  # Apply custom pagination class
+    throttle_classes = [UserRateThrottle]  # Apply throttling to class-based view
+
     
     # Define the fields that can be filtered, searched, and sorted
     filterset_class = TaskFilter  # Use the custom filterset for filtering
@@ -39,6 +49,7 @@ class TaskListView(generics.ListCreateAPIView):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([UserRateThrottle])
 def create_task(request):
     serializer = TaskSerializer(data=request.data)
     if serializer.is_valid():
@@ -48,6 +59,7 @@ def create_task(request):
 
 @api_view(['PUT', 'PATCH', 'GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([UserRateThrottle])
 def update_task(request, pk):
     try:
         task = Task.objects.get(pk=pk)
@@ -67,6 +79,7 @@ def update_task(request, pk):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([UserRateThrottle])
 def delete_task(request,pk):
     try:
         task = Task.objects.get(pk=pk)

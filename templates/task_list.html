@@ -5,6 +5,15 @@
 {% block content-body %}
 
 <div class="container my-5">
+    <nav class="navbar bg-body-tertiary">
+        <div class="container-fluid">
+            <form id="search-form" class="d-flex" role="search">
+                <input id="search-term" class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+        </div>
+    </nav>
+    <div id="loading" style="display: none;">Loading...</div>
     <div class="table-responsive">
         <table class="table table-primary round">
             <thead>
@@ -30,6 +39,19 @@
 
             </tbody>
         </table>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation example">
+            <ul id="pagination" class="pagination justify-content-center">
+                <li id="prev-page" class="page-item">
+                    <a class="page-link" href="#" id="prev-link">Previous</a>
+                </li>
+                <li id="next-page" class="page-item">
+                    <a class="page-link" href="#" id="next-link">Next</a>
+                </li>
+            </ul>
+        </nav>
+
     </div>
     <div>
         <a class="btn btn-success" href="{% url 'create-task-view' %}">Add New Task</a>
@@ -45,17 +67,44 @@
 
     let currentSortField = '';  // Track the current sort field
     let currentSortOrder = '';  // Track the current sort order
-
+    let currentsearchTerm = '';
+    let currentUrl = '';
             
-    function fetchTaskList(sortField = '', sortOrder = '') {
-        let url = '/task/task-list/';
+    function fetchTaskList(url = '/task/task-list/', sortField = '', sortOrder = '', searchTerm = '') {
+        let apiUrl = url;
 
+
+        // Update current values
+        if (sortField) currentSortField = sortField;
+        if (sortOrder) currentSortOrder = sortOrder;
+        if (searchTerm) currentSearchTerm = searchTerm;
+        if (url) currentUrl = url;
+
+
+        if (sortField && sortOrder && searchTerm) {
+            apiUrl += `?search=${searchTerm}&ordering=${sortOrder === 'asc' ? '' : '-'}${sortField}`;
+        } else if (sortField && sortOrder) {
+            apiUrl += `?ordering=${sortOrder === 'asc' ? '' : '-'}${sortField}`;
+        } else if (searchTerm) {
+            apiUrl += `?search=${searchTerm}`;
+        }
+        
+        // console.log(searchTerm)
+
+    
         // Add sorting query parameters if sorting is applied
-        if (sortField && sortOrder) {
-            url += `?ordering=${sortOrder === 'asc' ? '' : '-'}${sortField}`;
-            }
+        // if (sortField && sortOrder && searchTerm) {
+        //     url += `?search=${searchTerm}&ordering=${sortOrder === 'asc' ? '' : '-'}${sortField}`;
+        // } else if (sortField && sortOrder) {
+        //     url += `?ordering=${sortOrder === 'asc' ? '' : '-'}${sortField}`;
+        // } else if (searchTerm){
+        //             url += `?search=${searchTerm}`;
+        //     }
 
-        fetch(url, {
+
+         document.getElementById('loading').style.display = 'block';       
+        console.log(apiUrl)
+        fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,33 +119,89 @@
                 return response.json();
             })
             .then(data => {
+                document.getElementById('loading').style.display = 'none';
                 const tableBody = document.getElementById('task-table-body');
-                tableBody.innerHTML = '';  // Clear existing rows
+                tableBody.innerHTML = ''; // Clear existing rows
+                console.log(data);
 
-                data.forEach(task => {
+                // Populate table rows
+                data.results.forEach(task => {
                     const newRow = `
-            <tr>
-                <td>${task.title}</td>
-                <td>${task.description}</td>
-                <td>${task.status}</td>
-                <td>${task.priority}</td>
-                <td>${task.category}</td>
-                <td>${new Date(task.due_date).toLocaleDateString()}</td>
-                <td>
-                    <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
-                    <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
-                </td>
-            </tr>
-        `;
+                <tr>
+                    <td>${task.title}</td>
+                    <td>${task.description}</td>
+                    <td>${task.status}</td>
+                    <td>${task.priority}</td>
+                    <td>${task.category}</td>
+                    <td>${new Date(task.due_date).toLocaleDateString()}</td>
+                    <td>
+                        <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
+                        <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
+                    </td>
+                </tr>`;
                     tableBody.insertAdjacentHTML('beforeend', newRow);
                 });
+
+                // Handle pagination links
+                const prevPageItem = document.getElementById('prev-page');
+                const nextPageItem = document.getElementById('next-page');
+                const prevLink = document.getElementById('prev-link');
+                const nextLink = document.getElementById('next-link');
+
+                // Previous link
+                if (data.previous) {
+                    prevPageItem.classList.remove('disabled');
+                    prevLink.onclick = () => fetchTaskList(data.previous);
+                } else {
+                    prevPageItem.classList.add('disabled');
+                    prevLink.onclick = null;
+                }
+
+                // Next link
+                if (data.next) {
+                    nextPageItem.classList.remove('disabled');
+                    nextLink.onclick = () => fetchTaskList(data.next);
+                } else {
+                    nextPageItem.classList.add('disabled');
+                    nextLink.onclick = null;
+                }
 
                 // Add delete event listeners to each delete button
                 document.querySelectorAll('.delete-task-btn').forEach(button => {
                     button.addEventListener('click', handleDeleteTask);
                 });
             })
-            .catch(error => console.error('Error fetching tasks:', error));
+        //     .then(data => {
+        //         document.getElementById('loading').style.display = 'none';
+        //         const tableBody = document.getElementById('task-table-body');
+        //         tableBody.innerHTML = '';  // Clear existing rows
+        //         console.log(data)
+        //         data.results.forEach(task => {
+        //             const newRow = `
+        //     <tr>
+        //         <td>${task.title}</td>
+        //         <td>${task.description}</td>
+        //         <td>${task.status}</td>
+        //         <td>${task.priority}</td>
+        //         <td>${task.category}</td>
+        //         <td>${new Date(task.due_date).toLocaleDateString()}</td>
+        //         <td>
+        //             <a class="btn btn-warning" href="/task/update-task-view/${task.id}/">Edit</a>
+        //             <p class="btn btn-danger delete-task-btn" data-task-id="${task.id}">Delete</p>
+        //         </td>
+        //     </tr>
+        // `;
+        //             tableBody.insertAdjacentHTML('beforeend', newRow);
+
+        //         // Add delete event listeners to each delete button
+        //         document.querySelectorAll('.delete-task-btn').forEach(button => {
+        //             button.addEventListener('click', handleDeleteTask);
+        //         });
+        //     })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                console.error('Error fetching tasks:', error)
+            });
     }
 
     // Handle sorting click event
@@ -113,8 +218,9 @@
                 currentSortField = sortField;
                 currentSortOrder = 'asc';
             }
+            console.log(currentsearchTerm, currentSortOrder)
 
-            fetchTaskList(currentSortField, currentSortOrder);
+            fetchTaskList( currentUrl, currentSortField, currentSortOrder, currentsearchTerm);
         });
     });
 
@@ -229,7 +335,17 @@
                     // Handle token refresh failure (e.g., redirect to login)
                 });
         }
+    
+    const seacrForm = document.getElementById('search-form').addEventListener('submit', searchTask)
+    function searchTask(event){
+        event.preventDefault()
+        searchTerm = document.getElementById('search-term').value;
+        console.log(searchTerm)
+        // fetchTaskList("","",searchTerm);
+         fetchTaskList(currentUrl, currentSortField, currentSortOrder, searchTerm);
 
+    }
+    
     // Fetch task list when page loads
     fetchTaskList()
 
