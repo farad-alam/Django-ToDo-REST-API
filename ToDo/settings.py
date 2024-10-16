@@ -180,7 +180,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',  # For authenticated users
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '50/minute',   # Max 5 requests per minute for unauthenticated users
+        'anon': '5/minute',   # Max 5 requests per minute for unauthenticated users
         'user': '30/minute',    # Max 100 requests per day for authenticated users
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

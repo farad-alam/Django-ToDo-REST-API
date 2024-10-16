@@ -21,12 +21,10 @@
 
     <body>
         <header>
-            <!-- place navbar here -->
-             <nav
-                class="navbar navbar-expand-sm navbar-dark bg-dark"
-             >
+            <!-- Navbar -->
+            <nav class="navbar navbar-expand-sm navbar-dark bg-dark shadow-sm">
                 <div class="container">
-                    <a class="navbar-brand" href="#">Task API</a>
+                    <a class="navbar-brand fw-bold" href="#">Task API</a>
                     <button
                         class="navbar-toggler d-lg-none"
                         type="button"
@@ -41,10 +39,9 @@
                     <div class="collapse navbar-collapse" id="collapsibleNavId">
                         <ul class="navbar-nav me-auto mt-2 mt-lg-0">
                             <li class="nav-item">
-                                <a class="nav-link active" href="{% url 'home' %}" aria-current="page"
-                                    >Home
-                                    <span class="visually-hidden">(current)</span></a
-                                >
+                                <a class="nav-link active" href="{% url 'home' %}" aria-current="page">
+                                    Home <span class="visually-hidden">(current)</span>
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'create-task-view' %}">New Task</a>
@@ -52,52 +49,33 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'task-list-view' %}">Task List</a>
                             </li>
-                            
                         </ul>
-
-                        <ul class="navbar-nav d-flex my-2 my-lg-0">
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'login-view' %}">Login</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'registration' %}">Register</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <button id="logout-btn" class="btn btn-danger">Logout</button>
-                            </li>
-
-                        
+                        <ul class="navbar-nav d-flex my-2 my-lg-0" id="auth-links">
+                            <!-- Links will be dynamically inserted here -->
                         </ul>
-
-                        <!-- <form class="d-flex my-2 my-lg-0">
-                            <input
-                                class="form-control me-sm-2"
-                                type="text"
-                                placeholder="Search"
-                            />
-                            <button
-                                class="btn btn-outline-success my-2 my-sm-0"
-                                type="submit"
-                            >
-                                Search
-                            </button>
-                        </form> -->
                     </div>
                 </div>
-             </nav>
-             
+            </nav>
         </header>
+
+        
+
         <main>
-            {% block content-body %}
-              
-            {% endblock content-body %}
+            <div class="container my-5">
+                {% block content-body %}
+                {% endblock content-body %}
+            </div>
         </main>
-        <footer>
-            <!-- place footer here -->
-             <h3>Task API Calling</h3>
+
+        <!-- Footer -->
+        <footer class="bg-dark text-white py-4">
+            <div class="container text-center">
+                <p class="mb-0">&copy; 2024 Task API. All Rights Reserved.</p>
+                <small>Designed to make your task management simple and efficient.</small>
+            </div>
         </footer>
+
+
         <!-- Bootstrap JavaScript Libraries -->
         <script
             src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
@@ -112,34 +90,84 @@
         ></script>
 
         <script>
-            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            // document.getElementById('logout-btn').addEventListener('click', handleLogout);
 
-                function handleLogout() {
+            //     function handleLogout() {
 
 
-                    // Optionally, send a request to the backend to blacklist or invalidate the refresh token
-                    fetch('/accounts/logout/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + localStorage.getItem('access')
-                        },
-                    })
-                        .then(response => {
-                            if (response.ok) {
-                                console.log('Logged out successfully.');
-                            } else {
-                                console.error('Failed to log out.');
-                            }
-                        })
-                        .catch(error => console.error('Error during logout:', error));
+            //         // Optionally, send a request to the backend to blacklist or invalidate the refresh token
+            //         fetch('/accounts/logout/', {
+            //             method: 'POST',
+            //             headers: {
+            //                 'Content-Type': 'application/json',
+            //                 'Authorization': 'Bearer ' + localStorage.getItem('access')
+            //             },
+            //         })
+            //             .then(response => {
+            //                 if (response.ok) {
+            //                     console.log('Logged out successfully.');
+            //                 } else {
+            //                     console.error('Failed to log out.');
+            //                 }
+            //             })
+            //             .catch(error => console.error('Error during logout:', error));
 
-                    // Remove tokens from localStorage
-                    localStorage.removeItem('access');
-                    localStorage.removeItem('refresh');
-                    // Redirect the user to the login page
-                    window.location.href = '/accounts/login-view/';
-                }
+            //         // Remove tokens from localStorage
+            //         localStorage.removeItem('access');
+            //         localStorage.removeItem('refresh');
+            //         // Redirect the user to the login page
+            //         window.location.href = '/accounts/login-view/';
+            //     }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                    const authLinks = document.getElementById('auth-links');
+                    const token = localStorage.getItem('access'); // Change to your token storage method
+                    console.log(token)
+
+                    if (token) {
+                        // User is authenticated
+                        authLinks.innerHTML = `
+                                        <li class="nav-item">
+                                            <button id="logout-btn" class="btn btn-danger ms-2">Logout</button>
+                                        </li>
+                                    `;
+
+                        document.getElementById('logout-btn').addEventListener('click', function () {
+                            // Call your logout API here
+                            fetch('/accounts/logout/', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Bearer ' + localStorage.getItem('access')
+                                    },
+                                })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            console.log('Logged out successfully.');
+                                        } else {
+                                            console.error('Failed to log out.');
+                                        }
+                                    })
+                                    .catch(error => console.error('Error during logout:', error));
+
+                                    // Remove tokens from localStorage
+                                    localStorage.removeItem('access');
+                                    localStorage.removeItem('refresh');
+                                    // Redirect the user to the login page
+                                    window.location.href = '/accounts/login-view/';
+                        });
+                    } else {
+                        // User is not authenticated
+                        authLinks.innerHTML = `
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'login-view' %}">Login</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'registration' %}">Register</a>
+                                    </li>
+                                `;
+                    }
+                });
 
 
                  window.addEventListener('load', () => {

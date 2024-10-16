@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 
 {% block content-body %}
-  <div class="container">
+<!-- Hero Section -->
+        <section class="bg-primary text-white mb-5 py-5 text-center">
+            <div class="container">
+                <h1 class="display-4 fw-bold">Manage Your Tasks Effortlessly</h1>
+                <p class="lead">A simple yet powerful API to help you manage, create, and track tasks efficiently.</p>
+                <a href="{% url 'create-task-view' %}" class="btn btn-light btn-lg mt-3">Get Started</a>
+            </div>
+        </section>
+  <div class="container mt-">
     <h2>Hello, User</h2>
   </div>
 {% endblock content-body %}
